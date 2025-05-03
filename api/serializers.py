@@ -15,7 +15,20 @@ class ProductSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(image)
         return image
 
+class ItemSerializer(serializers.Serializer):
+    name     = serializers.CharField()
+    quantity = serializers.IntegerField()
+
 class OrderSerializer(serializers.ModelSerializer):
+    items = ItemSerializer(many=True)
+
     class Meta:
-        model = Order
-        fields = '__all__'
+        model  = Order
+        fields = ['id','name','phone','address','items','subtotal','delivery_fee','total','created_at']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        order = Order.objects.create(**validated_data)
+        order.items = items_data
+        order.save()
+        return order

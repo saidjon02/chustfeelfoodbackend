@@ -1,35 +1,29 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import stripe
-from django.conf import settings
-# ——————————————————————————————————————————————————————————————
-# Path to project root & load .env
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
-# ——————————————————————————————————————————————————————————————
 
-# SECURITY
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-STRIPE_SECRET_KEY')
-DEBUG = True
-ALLOWED_HOSTS = ['*']
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Apps
 INSTALLED_APPS = [
-    'corsheaders',            # CORS uchun
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',         # DRF
-    'api',                    # Sizning app
+    'rest_framework',
+    'api',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,29 +60,19 @@ DATABASES = {
     }
 }
 
-# Internationalization & static
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = 'static/'
+
+STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
-# DRF Default Permissions
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-}
-
-# Stripe & Telegram keys
+# Stripe & Telegram
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN        = os.getenv('BOT_TOKEN')
 CHAT_ID          = os.getenv('CHAT_ID')
-
-# Disable APPEND_SLASH to avoid redirect on missing slash
-APPEND_SLASH = False
-# feelfood/settings.py
