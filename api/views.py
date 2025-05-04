@@ -55,14 +55,27 @@ class OrderViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 @csrf_exempt
 def create_payment_intent(request):
+    # 1) Debug: .env dan kelayotgan kalit
     print("🔑 Stripe API Key:", settings.STRIPE_SECRET_KEY)
+    # 2) Debug: so‘rov metodi va body
+    print("📥 Request method:", request.method)
     print("📥 Request body:", request.body)
 
-    data   = json.loads(request.body)
+    # 3) JSON parse va validatsiya
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        print("❌ JSON parsing error:", e)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
     amount = data.get('amount')
-    if not amount or amount < 50:
+    print("💸 Received amount:", amount)
+    if amount is None:
+        return JsonResponse({'error': 'Amount is required'}, status=400)
+    if not isinstance(amount, int) or amount < 50:
         return JsonResponse({'error': 'Minimal miqdor $0.50 bo‘lishi kerak'}, status=400)
 
+    # 4) Stripe PaymentIntent yaratish
     try:
         intent = stripe.PaymentIntent.create(amount=amount, currency='usd')
         print("✅ PaymentIntent created:", intent.id)
@@ -70,3 +83,16 @@ def create_payment_intent(request):
     except Exception as e:
         print("❌ create_payment_intent exception:", str(e))
         return JsonResponse({'error': str(e)}, status=500)
+@api_view(['POST'])
+def send_telegram(request):
+    name = request.data.get('name')
+    phone = request.data.get('phone')
+    address = request.data.get('address')
+    cart_items = request.data.get('cartItems')
+
+    if not all([name, phone, address, cart_items]):
+        return Response({'error': 'Missing fields'}, status=400)
+
+    # ... telegram yuborish logikasi ...
+
+    return Response({'success': 'Sent successfully'})
