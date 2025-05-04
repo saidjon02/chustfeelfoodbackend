@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
+from django.shortcuts import render
 from .models import Product, Order
 from .serializers import ProductSerializer, OrderSerializer
 
@@ -96,3 +96,5 @@ def send_telegram(request):
     # ... telegram yuborish logikasi ...
 
     return Response({'success': 'Sent successfully'})
+def success_page(request):
+    return render(request, 'zakaz/success.html')
