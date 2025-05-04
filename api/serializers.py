@@ -16,19 +16,18 @@ class ProductSerializer(serializers.ModelSerializer):
         return image
 
 class ItemSerializer(serializers.Serializer):
-    name     = serializers.CharField()
+    name = serializers.CharField()
     quantity = serializers.IntegerField()
 
 class OrderSerializer(serializers.ModelSerializer):
     items = ItemSerializer(many=True)
 
     class Meta:
-        model  = Order
-        fields = ['id','name','phone','address','items','subtotal','delivery_fee','total','created_at']
+        model = Order
+        fields = ['id', 'name', 'phone', 'address', 'items', 'subtotal', 'delivery_fee', 'total', 'created_at']
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        order = Order.objects.create(**validated_data)
-        order.items = items_data
-        order.save()
+        # Ensure items_data is passed into creation to satisfy NOT NULL constraint
+        order = Order.objects.create(items=items_data, **validated_data)
         return order

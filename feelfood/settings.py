@@ -2,14 +2,20 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+# Bazaviy papka yo'lini aniqlash
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# .env fayldan ma'lumotlarni yuklash
 load_dotenv(BASE_DIR / '.env')
 
+# Muhit o'zgaruvchilari
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
-# Apps
+# ALLOWED_HOSTS - vergul bilan ajratilgan string => list ga aylantiriladi
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+
+# Django ilovalari
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
@@ -22,6 +28,7 @@ INSTALLED_APPS = [
     'api',
 ]
 
+# Middleware lar
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -33,8 +40,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# URL
 ROOT_URLCONF = 'feelfood.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -51,8 +60,10 @@ TEMPLATES = [
     },
 ]
 
+# WSGI
 WSGI_APPLICATION = 'feelfood.wsgi.application'
 
+# Baza: SQLite (hozircha)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -60,19 +71,22 @@ DATABASES = {
     }
 }
 
-# Internationalization
+# Til va vaqt
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Statik fayllar
 STATIC_URL = '/static/'
+
+# Modellar uchun default primary key turi
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS
+# CORS (Netlify yoki frontend bilan ishlashi uchun)
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Stripe & Telegram
+# Stripe va Telegram
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN        = os.getenv('BOT_TOKEN')
 CHAT_ID          = os.getenv('CHAT_ID')
