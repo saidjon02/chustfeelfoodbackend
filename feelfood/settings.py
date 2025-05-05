@@ -1,3 +1,4 @@
+# settings.py
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -12,10 +13,10 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# ALLOWED_HOSTS - vergul bilan ajratilgan string => list ga aylantiriladi
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+# Ruxsat etilgan hostlar
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,localhost:8000,chustfeelfood.netlify.app,chustfeelfood.onrender.com,chustfeelfoodbackend.onrender.com').split(',')
 
-# Django ilovalari
+# Ilovalar
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
@@ -25,10 +26,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api',
+    'api',  # sizning app nomingiz
 ]
 
-# Middleware lar
+# Middleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -40,10 +41,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# URL
 ROOT_URLCONF = 'feelfood.urls'
 
-# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -60,10 +59,9 @@ TEMPLATES = [
     },
 ]
 
-# WSGI
 WSGI_APPLICATION = 'feelfood.wsgi.application'
 
-# Baza: SQLite (hozircha)
+# Ma'lumotlar bazasi (SQLite)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -71,8 +69,7 @@ DATABASES = {
     }
 }
 
-# Til va vaqt
-LANGUAGE_CODE = 'en-us'
+# Xalqaro sozlamalar\LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
@@ -80,10 +77,75 @@ USE_TZ = True
 # Statik fayllar
 STATIC_URL = '/static/'
 
-# Modellar uchun default primary key turi
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# CORS sozlamalari
+CORS_ALLOWED_ORIGINS = [
+    'https://chustfeelfood.netlify.app',
+    'https://chustfeelfood.onrender.com',
+    'https://chustfeelfoodbackend.onrender.com',
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:8000',
+]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    'https://chustfeelfood.netlify.app',
+    'https://chustfeelfood.onrender.com',
+    'https://chustfeelfoodbackend.onrender.com',
+]
+
+# REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
 
 # Stripe va Telegram
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-BOT_TOKEN        = os.getenv('BOT_TOKEN')
-CHAT_ID          = os.getenv('CHAT_ID')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+
+# ----------------------------------------------------------------------
+# api/models.py
+from django.db import models
+from django.contrib.postgres.fields import JSONField
+
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class Order(models.Model):
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=50)
+    address = models.TextField()
+    items = JSONField()  # taomlar ro'yxatini JSON da saqlaydi
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    delivery_fee = models.DecimalField(max_digits=6, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order {self.id} - {self.name}"
+
+
+# ----------------------------------------------------------------------
+# api/serializers.py
+from rest_framework import serializers
+from .models import Product, Order
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['id', 'name', 'phone', 'address', 'items', 'subtotal', 'delivery_fee', 'total', 'created_at']
