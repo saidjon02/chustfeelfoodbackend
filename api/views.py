@@ -11,15 +11,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
 from .models import Product, Order
 from .serializers import ProductSerializer, OrderSerializer
+
 from .forms import ProductForm  # Form for template-based CRUD
 
 # Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
 def home(request):
     return HttpResponse("Feel Food API ishlayapti 🚀")
 
@@ -27,6 +25,7 @@ def home(request):
 # --- DRF ViewSets ---
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """Faqat o‘qish uchun API (GET)"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -51,10 +50,12 @@ class OrderViewSet(viewsets.ModelViewSet):
             f"🚚 Delivery: ${order.delivery_fee}\n"
             f"*Total:* ${order.total}"
         )
+
         resp = requests.post(
             f"https://api.telegram.org/bot{settings.BOT_TOKEN}/sendMessage",
             json={'chat_id': settings.CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
         )
+
         if resp.status_code != 200:
             print(f"Telegram xatolik: {resp.text}")
 
@@ -66,21 +67,13 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@csrf_exempt
 def create_payment_intent(request):
-    # Debug prints
-    print("🔑 Stripe API Key:", settings.STRIPE_SECRET_KEY)
-    print("📥 Request method:", request.method)
-    print("📥 Request body:", request.body)
-
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError as e:
-        print("❌ JSON parsing error:", e)
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     amount = data.get('amount')
-    print("💸 Received amount:", amount)
     if amount is None:
         return JsonResponse({'error': 'Amount is required'}, status=400)
     if not isinstance(amount, int) or amount < 50:
@@ -88,18 +81,15 @@ def create_payment_intent(request):
 
     try:
         intent = stripe.PaymentIntent.create(amount=amount, currency='usd')
-        print("✅ PaymentIntent created:", intent.id)
         return JsonResponse({'clientSecret': intent.client_secret})
     except Exception as e:
-        print("❌ create_payment_intent exception:", str(e))
         return JsonResponse({'error': str(e)}, status=500)
 
 
-# --- Telegram-sending endpoint ---
+# --- Telegram xabari yuborish ---
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@csrf_exempt
 def send_telegram(request):
     name = request.data.get('name')
     phone = request.data.get('phone')
@@ -109,12 +99,12 @@ def send_telegram(request):
     if not all([name, phone, address, cart_items]):
         return Response({'error': 'Missing fields'}, status=400)
 
-    # Bu yerda o'zingizning Telegram logikangiz bo'ladi
+    # Agar kerak bo‘lsa shu yerga xabar yuborish logikasini yozish mumkin
 
     return Response({'success': 'Sent successfully'})
 
 
-# --- Template-based CRUD views for Product ---
+# --- Template-based CRUD for Product ---
 
 def product_create(request):
     if request.method == 'POST':
@@ -157,7 +147,7 @@ def product_delete(request, pk):
     return render(request, 'product_confirm_delete.html', {'product': product})
 
 
-# --- Simple JSON-based Product API for React frontend ---
+# --- Simple JSON-based API (React frontend uchun) ---
 
 def product_list_api(request):
     products = list(Product.objects.values())
