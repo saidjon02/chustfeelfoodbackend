@@ -83,9 +83,6 @@ STATIC_URL = '/static/'
 # Modellar uchun default primary key turi
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS (Netlify yoki frontend bilan ishlashi uchun)
-CORS_ALLOW_ALL_ORIGINS = True
-
 # Stripe va Telegram
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN        = os.getenv('BOT_TOKEN')
