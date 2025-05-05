@@ -1,3 +1,4 @@
+# api/views.py
 import json
 import stripe
 import requests
@@ -11,18 +12,17 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
 from .models import Product, Order
 from .serializers import ProductSerializer, OrderSerializer
-
-from .forms import ProductForm  # Form for template-based CRUD
+from .forms import ProductForm
 
 # Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 def home(request):
     return HttpResponse("Feel Food API ishlayapti 🚀")
 
-
-# --- DRF ViewSets ---
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """Faqat o‘qish uchun API (GET)"""
@@ -55,7 +55,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             f"https://api.telegram.org/bot{settings.BOT_TOKEN}/sendMessage",
             json={'chat_id': settings.CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
         )
-
         if resp.status_code != 200:
             print(f"Telegram xatolik: {resp.text}")
 
@@ -63,14 +62,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-# --- Stripe PaymentIntent API ---
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_payment_intent(request):
     try:
         data = json.loads(request.body)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     amount = data.get('amount')
@@ -86,81 +83,28 @@ def create_payment_intent(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-# --- Telegram xabari yuborish ---
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_telegram(request):
-    name = request.data.get('name')
-    phone = request.data.get('phone')
+    name    = request.data.get('name')
+    phone   = request.data.get('phone')
     address = request.data.get('address')
-    cart_items = request.data.get('cartItems')
+    items   = request.data.get('items')
 
-    if not all([name, phone, address, cart_items]):
+    if not all([name, phone, address, items]):
         return Response({'error': 'Missing fields'}, status=400)
 
-    # Agar kerak bo‘lsa shu yerga xabar yuborish logikasini yozish mumkin
+    text = (
+        f"🛒 *YANGI BUYURTMA*\n"
+        f"👤 Ism: {name}\n"
+        f"📞 Tel: {phone}\n"
+        f"📍 Manzil: {address}\n\n*Taomlar:*\n"
+    ) + ''.join([f"• {i['name']} x{i['quantity']}\n" for i in items])
 
+    resp = requests.post(
+        f"https://api.telegram.org/bot{settings.BOT_TOKEN}/sendMessage",
+        json={'chat_id': settings.CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
+    )
+    if resp.status_code != 200:
+        return Response({'error': resp.text}, status=500)
     return Response({'success': 'Sent successfully'})
-
-
-# --- Template-based CRUD for Product ---
-
-def product_create(request):
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')
-    else:
-        form = ProductForm()
-    return render(request, 'product_form.html', {'form': form})
-
-
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, 'product_list.html', {'products': products})
-
-
-def product_detail(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, 'product_detail.html', {'product': product})
-
-
-def product_update(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        form = ProductForm(request.POST, instance=product)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')
-    else:
-        form = ProductForm(instance=product)
-    return render(request, 'product_form.html', {'form': form})
-
-
-def product_delete(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        product.delete()
-        return redirect('product_list')
-    return render(request, 'product_confirm_delete.html', {'product': product})
-
-
-# --- Simple JSON-based API (React frontend uchun) ---
-
-def product_list_api(request):
-    products = list(Product.objects.values())
-    return JsonResponse(products, safe=False)
-
-
-@csrf_exempt
-def product_create_api(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        name = data.get('name')
-        price = data.get('price')
-        if not name or price is None:
-            return JsonResponse({'error': 'Name and price are required.'}, status=400)
-        product = Product.objects.create(name=name, price=price)
-        return JsonResponse({'message': 'Product created', 'id': product.id}, status=201)

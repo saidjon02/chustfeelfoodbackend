@@ -1,3 +1,4 @@
+# api/serializers.py
 from rest_framework import serializers
 from .models import Product, Order
 
@@ -28,6 +29,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        # Ensure items_data is passed into creation to satisfy NOT NULL constraint
         order = Order.objects.create(items=items_data, **validated_data)
         return order
