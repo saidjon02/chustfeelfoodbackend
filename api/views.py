@@ -1,28 +1,38 @@
 import json
 import stripe
 import requests
+
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.shortcuts import render
+
 from .models import Product, Order
 from .serializers import ProductSerializer, OrderSerializer
+from .forms import ProductForm  # Form for template-based CRUD
 
+# Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 def home(request):
     return HttpResponse("Feel Food API ishlayapti 🚀")
 
+
+# --- DRF ViewSets ---
+
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset         = Product.objects.all()
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset         = Order.objects.order_by('-created_at')
+    queryset = Order.objects.order_by('-created_at')
     serializer_class = OrderSerializer
 
     def create(self, request, *args, **kwargs):
@@ -51,17 +61,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+
+# --- Stripe PaymentIntent API ---
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
 def create_payment_intent(request):
-    # 1) Debug: .env dan kelayotgan kalit
+    # Debug prints
     print("🔑 Stripe API Key:", settings.STRIPE_SECRET_KEY)
-    # 2) Debug: so‘rov metodi va body
     print("📥 Request method:", request.method)
     print("📥 Request body:", request.body)
 
-    # 3) JSON parse va validatsiya
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError as e:
@@ -75,7 +86,6 @@ def create_payment_intent(request):
     if not isinstance(amount, int) or amount < 50:
         return JsonResponse({'error': 'Minimal miqdor $0.50 bo‘lishi kerak'}, status=400)
 
-    # 4) Stripe PaymentIntent yaratish
     try:
         intent = stripe.PaymentIntent.create(amount=amount, currency='usd')
         print("✅ PaymentIntent created:", intent.id)
@@ -83,7 +93,13 @@ def create_payment_intent(request):
     except Exception as e:
         print("❌ create_payment_intent exception:", str(e))
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# --- Telegram-sending endpoint ---
+
 @api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_exempt
 def send_telegram(request):
     name = request.data.get('name')
     phone = request.data.get('phone')
@@ -93,6 +109,68 @@ def send_telegram(request):
     if not all([name, phone, address, cart_items]):
         return Response({'error': 'Missing fields'}, status=400)
 
-    # ... telegram yuborish logikasi ...
+    # Bu yerda o'zingizning Telegram logikangiz bo'ladi
 
     return Response({'success': 'Sent successfully'})
+
+
+# --- Template-based CRUD views for Product ---
+
+def product_create(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'product_form.html', {'form': form})
+
+
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'product_list.html', {'products': products})
+
+
+def product_detail(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    return render(request, 'product_detail.html', {'product': product})
+
+
+def product_update(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'product_form.html', {'form': form})
+
+
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        return redirect('product_list')
+    return render(request, 'product_confirm_delete.html', {'product': product})
+
+
+# --- Simple JSON-based Product API for React frontend ---
+
+def product_list_api(request):
+    products = list(Product.objects.values())
+    return JsonResponse(products, safe=False)
+
+
+@csrf_exempt
+def product_create_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        name = data.get('name')
+        price = data.get('price')
+        if not name or price is None:
+            return JsonResponse({'error': 'Name and price are required.'}, status=400)
+        product = Product.objects.create(name=name, price=price)
+        return JsonResponse({'message': 'Product created', 'id': product.id}, status=201)

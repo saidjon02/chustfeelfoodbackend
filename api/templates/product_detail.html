@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ product.name }}</title>
+</head>
+<body>
+    <h1>{{ product.name }}</h1>
+    <p>Narxi: ${{ product.price }}</p>
+    <p>Izoh: {{ product.description }}</p>
+
+    <a href="{% url 'product_update' product.pk %}">Tahrirlash</a> |
+    <a href="{% url 'product_delete' product.pk %}">O‘chirish</a> |
+    <a href="{% url 'product_list' %}">Ortga</a>
+</body>
+</html>
