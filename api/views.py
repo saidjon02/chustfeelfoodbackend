@@ -96,5 +96,3 @@ def send_telegram(request):
     # ... telegram yuborish logikasi ...
 
     return Response({'success': 'Sent successfully'})
-def success_page(request):
-    return render(request, 'zakaz/success.html')
