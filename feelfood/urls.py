@@ -1,9 +1,15 @@
+# feelfood/urls.py
+
 from django.contrib import admin
 from django.urls import path, include
-from api.views import home  # bu opsional, agar "API ishlayapti" deb tekshirmoqchi bo‘lsang
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', home, name='home'),  # optional: API is alive
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
+    path('api/', include('api.urls')),   # api/… yo‘llari
 ]
+
+# faqat DEBUG=True bo‘lganda media URL’larini servis qilamiz
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

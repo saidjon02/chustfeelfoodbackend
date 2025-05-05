@@ -1,6 +1,7 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 # Bazaviy yo'l
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # .env faylni yuklash
 load_dotenv(BASE_DIR / '.env')
 
-# Muhit o'zgaruvchilari
+# Maxfiy kalitlar
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv(
@@ -26,7 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api',  # sizning ilova nomingiz
+    'api',  # Sizning app nomingiz
 ]
 
 # Middleware
@@ -64,10 +65,11 @@ WSGI_APPLICATION = 'feelfood.wsgi.application'
 
 # Ma'lumotlar bazasi
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
 }
 
 # Xalqaro vaqt va til
@@ -78,11 +80,12 @@ USE_TZ = True
 
 # Statik va media fayllar
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.getenv('RENDER_MEDIA_ROOT', BASE_DIR / 'media')
 
-# CORS (frontenddan kirish uchun ruxsat berilgan domenlar)
+# CORS (frontenddan kirish uchun ruxsat)
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',  # Vite
     'http://localhost:3000',
@@ -95,7 +98,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF uchun trusted originlar (POST request uchun)
+# CSRF uchun trusted originlar
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'https://chustfeelfood.netlify.app',

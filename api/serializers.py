@@ -1,15 +1,16 @@
 # api/serializers.py
+
 from rest_framework import serializers
 from .models import Product, Order
 
 class ProductSerializer(serializers.ModelSerializer):
-    img_url = serializers.SerializerMethodField()
+    get_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'img_url']
+        fields = ['id', 'name', 'price', 'get_image']
 
-    def get_img_url(self, obj):
+    def get_get_image(self, obj):
         request = self.context.get('request')
         image = obj.get_image()
         if image and request and image.startswith('/'):
