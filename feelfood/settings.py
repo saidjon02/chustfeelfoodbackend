@@ -92,5 +92,6 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN        = os.getenv('BOT_TOKEN')
 CHAT_ID          = os.getenv('CHAT_ID')
 CSRF_TRUSTED_ORIGINS = [
-    'https://chustfeelfood.onrender.com',  # Sizning frontend manzilingiz
+    'https://chustfeelfood.onrender.com',
+    'https://chustfeelfoodbackend.onrender.com',
 ]
