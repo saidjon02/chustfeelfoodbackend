@@ -1,4 +1,3 @@
-# settings.py
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -14,7 +13,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Ruxsat etilgan hostlar
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,localhost:8000,chustfeelfood.netlify.app,chustfeelfood.onrender.com,chustfeelfoodbackend.onrender.com').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,chustfeelfood.netlify.app,chustfeelfood.onrender.com,chustfeelfoodbackend.onrender.com').split(',')
 
 # Ilovalar
 INSTALLED_APPS = [
@@ -31,7 +30,7 @@ INSTALLED_APPS = [
 
 # Middleware
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # bu yuqorida bo'lishi kerak!
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,7 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'feelfood.wsgi.application'
 
-# Ma'lumotlar bazasi (SQLite)
+# Ma'lumotlar bazasi
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -69,7 +68,8 @@ DATABASES = {
     }
 }
 
-# Xalqaro sozlamalar\LANGUAGE_CODE = 'en-us'
+# Xalqaro sozlamalar
+LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
@@ -77,59 +77,37 @@ USE_TZ = True
 # Statik fayllar
 STATIC_URL = '/static/'
 
+# Media fayllar (agar rasm yuklansa)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # CORS sozlamalari
 CORS_ALLOWED_ORIGINS = [
     'https://chustfeelfood.netlify.app',
     'https://chustfeelfood.onrender.com',
     'https://chustfeelfoodbackend.onrender.com',
-    'http://localhost',
-    'http://127.0.0.1',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
     'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted originlar (POST request uchun)
 CSRF_TRUSTED_ORIGINS = [
     'https://chustfeelfood.netlify.app',
     'https://chustfeelfood.onrender.com',
     'https://chustfeelfoodbackend.onrender.com',
 ]
 
-# REST Framework
+# Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
 }
 
-# Stripe va Telegram
+# Stripe va Telegram sozlamalari
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
-
-
-# ----------------------------------------------------------------------
-# api/models.py
-from django.db import models
-from django.contrib.postgres.fields import JSONField
-
-class Product(models.Model):
-    name = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-class Order(models.Model):
-    name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=50)
-    address = models.TextField()
-    items = JSONField()  # taomlar ro'yxatini JSON da saqlaydi
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    delivery_fee = models.DecimalField(max_digits=6, decimal_places=2)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Order {self.id} - {self.name}"
