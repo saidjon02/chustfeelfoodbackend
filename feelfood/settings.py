@@ -2,18 +2,19 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Bazaviy papka yo'lini aniqlash
+# Bazaviy yo'l
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# .env fayldan ma'lumotlarni yuklash
+# .env faylni yuklash
 load_dotenv(BASE_DIR / '.env')
 
 # Muhit o'zgaruvchilari
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
-# Ruxsat etilgan hostlar
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,chustfeelfood.netlify.app,chustfeelfood.onrender.com,chustfeelfoodbackend.onrender.com').split(',')
+ALLOWED_HOSTS = os.getenv(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,chustfeelfood.netlify.app,chustfeelfood.onrender.com,chustfeelfoodbackend.onrender.com'
+).split(',')
 
 # Ilovalar
 INSTALLED_APPS = [
@@ -25,12 +26,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api',  # sizning app nomingiz
+    'api',  # sizning ilova nomingiz
 ]
 
 # Middleware
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # bu yuqorida bo'lishi kerak!
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -40,6 +41,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# URL va WSGI
 ROOT_URLCONF = 'feelfood.urls'
 
 TEMPLATES = [
@@ -68,37 +70,37 @@ DATABASES = {
     }
 }
 
-# Xalqaro sozlamalar
+# Xalqaro vaqt va til
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Statik fayllar
+# Statik va media fayllar
 STATIC_URL = '/static/'
 
-# Media fayllar (agar rasm yuklansa)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# CORS sozlamalari
+# CORS (frontenddan kirish uchun ruxsat berilgan domenlar)
 CORS_ALLOWED_ORIGINS = [
-    'https://chustfeelfood.netlify.app',
-    'https://chustfeelfood.onrender.com',
-    'https://chustfeelfoodbackend.onrender.com',
+    'http://localhost:5173',  # Vite
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-]
-CORS_ALLOW_CREDENTIALS = True
-
-# CSRF trusted originlar (POST request uchun)
-CSRF_TRUSTED_ORIGINS = [
     'https://chustfeelfood.netlify.app',
     'https://chustfeelfood.onrender.com',
     'https://chustfeelfoodbackend.onrender.com',
-    'http://localhost:5173',  
+]
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF uchun trusted originlar (POST request uchun)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'https://chustfeelfood.netlify.app',
+    'https://chustfeelfood.onrender.com',
+    'https://chustfeelfoodbackend.onrender.com',
 ]
 
 # Django REST Framework
@@ -108,7 +110,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Stripe va Telegram sozlamalari
+# Maxfiy kalitlar (.env dan olinadi)
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
