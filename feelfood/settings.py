@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'payme',
     'rest_framework',
     'api',
 ]
@@ -91,7 +90,3 @@ CORS_ALLOW_ALL_ORIGINS = True
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 BOT_TOKEN        = os.getenv('BOT_TOKEN')
 CHAT_ID          = os.getenv('CHAT_ID')
-CSRF_TRUSTED_ORIGINS = [
-    'https://chustfeelfood.onrender.com',
-    'https://chustfeelfoodbackend.onrender.com',
-]
