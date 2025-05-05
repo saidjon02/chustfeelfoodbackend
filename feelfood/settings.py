@@ -98,6 +98,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://chustfeelfood.netlify.app',
     'https://chustfeelfood.onrender.com',
     'https://chustfeelfoodbackend.onrender.com',
+    'http://localhost:5173',  
 ]
 
 # Django REST Framework
