@@ -1,11 +1,30 @@
 # api/models.py
 from django.db import models
 
+# api/models.py
+
+from django.db import models
+
 class Product(models.Model):
-    name  = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    img   = models.ImageField(upload_to='products/', blank=True, null=True)
+    FOOD  = 'food'
+    DRINK = 'drink'
+    CAKE  = 'cake'
+    CATEGORY_CHOICES = [
+        (FOOD,  'Ovqatlar'),
+        (DRINK, 'Ichimliklar'),
+        (CAKE,  'Tortlar'),
+    ]
+
+    name      = models.CharField(max_length=255)
+    price     = models.DecimalField(max_digits=10, decimal_places=2)
+    img       = models.ImageField(upload_to='products/', blank=True, null=True)
     image_url = models.URLField(null=True, blank=True)
+    category  = models.CharField(
+        max_length=10,
+        choices=CATEGORY_CHOICES,
+        default=FOOD,
+        help_text="Kategoriya: ovqatlar, ichimliklar yoki tortlar"
+    )
 
     def get_image(self):
         if self.img and hasattr(self.img, 'url'):
@@ -15,7 +34,7 @@ class Product(models.Model):
         return ''
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_category_display()})"
 
 class Order(models.Model):
     name         = models.CharField(max_length=255)
