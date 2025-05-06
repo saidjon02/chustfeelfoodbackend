@@ -1,23 +1,16 @@
-# api/views.py
-import json
-import stripe
-import requests
-
-from django.conf import settings
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import csrf_exempt
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from django.http import JsonResponse, HttpResponse
+from django.conf import settings
+import json, stripe, requests
 
 from .models import Product, Order
 from .serializers import ProductSerializer, OrderSerializer
-from .forms import ProductForm
 
-# Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
@@ -26,12 +19,14 @@ def home(request):
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """Faqat o‘qish uchun API (GET)"""
-    queryset = Product.objects.all()
+    queryset         = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends  = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['category']
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.order_by('-created_at')
+    queryset         = Order.objects.order_by('-created_at')
     serializer_class = OrderSerializer
 
     def create(self, request, *args, **kwargs):

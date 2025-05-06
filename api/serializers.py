@@ -8,7 +8,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Product
-        fields = ['id', 'name', 'price', 'get_image', 'category', 'type']
+        fields = ['id', 'name', 'price', 'category', 'get_image']
 
     def get_get_image(self, obj):
         request = self.context.get('request')
@@ -17,9 +17,11 @@ class ProductSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(image)
         return image
 
+
 class ItemSerializer(serializers.Serializer):
     name     = serializers.CharField()
     quantity = serializers.IntegerField()
+
 
 class OrderSerializer(serializers.ModelSerializer):
     items = ItemSerializer(many=True)
@@ -31,3 +33,4 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         return Order.objects.create(items=items_data, **validated_data)
+
