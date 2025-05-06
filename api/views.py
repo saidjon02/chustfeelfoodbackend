@@ -46,9 +46,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             f"📞 Tel: {order.phone}\n"
             f"📍 Manzil: {order.address}\n\n*Taomlar:*\n"
         ) + ''.join([f"• {i['name']} x{i['quantity']}\n" for i in order.items]) + (
-            f"\n💲 Subtotal: ${order.subtotal}\n"
-            f"🚚 Delivery: ${order.delivery_fee}\n"
-            f"*Total:* ${order.total}"
+            f"\n💲O'rtacha summa: ${order.subtotal}\n"
+            f"🚚 Yetkazib berish: ${order.delivery_fee}\n"
+            f"Jami summa: ${order.total}"
         )
 
         resp = requests.post(
