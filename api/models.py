@@ -10,9 +10,9 @@ class Product(models.Model):
     DRINK = 'drink'
     CAKE  = 'cake'
     CATEGORY_CHOICES = [
-        (FOOD,  'Ovqatlar'),
-        (DRINK, 'Ichimliklar'),
-        (CAKE,  'Tortlar'),
+        (FOOD,  '🍔 Taomlar'),
+        (DRINK, '🥤 Ichimliklar'),
+        (CAKE,  '🍰 Desertlar'),
     ]
 
     name      = models.CharField(max_length=255)
